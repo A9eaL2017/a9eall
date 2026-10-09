@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { AdminCard, AdminField, AdminInput, AdminToggle, AdminSlider, AdminColorInput } from '../AdminUI';
 import { Plus, Trash2, GripVertical, Upload, Music } from 'lucide-react';
@@ -6,6 +7,8 @@ import type { MusicTrack } from '@/types/config';
 
 export function MusicSection() {
   const { draft, updateDraft } = useConfig();
+  const [uploadingTrackId, setUploadingTrackId] = useState<string | null>(null);
+  const [trackUploadErrors, setTrackUploadErrors] = useState<Record<string, string>>({});
   if (!draft) return null;
 
   const mp = draft.musicPlayer;
@@ -56,6 +59,49 @@ export function MusicSection() {
     if (error) return;
     const { data } = supabase.storage.from('profile-assets').getPublicUrl(fileName);
     updateTrack(id, 'coverUrl', data.publicUrl);
+  };
+
+  const uploadAudio = async (id: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    setTrackUploadErrors(errors => ({ ...errors, [id]: '' }));
+    if (!file.name.toLowerCase().endsWith('.mp3')) {
+      setTrackUploadErrors(errors => ({ ...errors, [id]: 'Choose an MP3 audio file.' }));
+      input.value = '';
+      return;
+    }
+    if (file.size > 25 * 1024 * 1024) {
+      setTrackUploadErrors(errors => ({ ...errors, [id]: 'MP3 files must be 25 MB or smaller.' }));
+      input.value = '';
+      return;
+    }
+    if (!supabase) {
+      setTrackUploadErrors(errors => ({ ...errors, [id]: 'Audio storage is not configured.' }));
+      input.value = '';
+      return;
+    }
+
+    setUploadingTrackId(id);
+    try {
+      const fileName = `tracks/${crypto.randomUUID()}.mp3`;
+      const { error } = await supabase.storage.from('profile-assets').upload(fileName, file, {
+        contentType: 'audio/mpeg',
+      });
+      if (error) throw new Error(error.message);
+
+      const { data } = supabase.storage.from('profile-assets').getPublicUrl(fileName);
+      updateTrack(id, 'url', data.publicUrl);
+    } catch (err) {
+      setTrackUploadErrors(errors => ({
+        ...errors,
+        [id]: err instanceof Error ? err.message : 'MP3 upload failed. Please try again.',
+      }));
+    } finally {
+      setUploadingTrackId(null);
+      input.value = '';
+    }
   };
 
   return (
@@ -132,6 +178,23 @@ export function MusicSection() {
                   <AdminInput value={track.title} onChange={e => updateTrack(track.id, 'title', e.target.value)} placeholder="Track title" />
                   <AdminInput value={track.artist} onChange={e => updateTrack(track.id, 'artist', e.target.value)} placeholder="Artist name" />
                   <AdminInput value={track.url} onChange={e => updateTrack(track.id, 'url', e.target.value)} placeholder="Audio URL (https://...)" />
+                  <div className="flex items-center gap-3">
+                    <label className={`cursor-pointer inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 hover:bg-white/10 ${uploadingTrackId ? 'opacity-50 pointer-events-none' : ''}`}>
+                      <Upload size={13} />
+                      {uploadingTrackId === track.id ? 'Uploading…' : 'Upload MP3'}
+                      <input
+                        type="file"
+                        accept=".mp3,audio/mpeg"
+                        className="hidden"
+                        onChange={e => uploadAudio(track.id, e)}
+                        disabled={uploadingTrackId !== null}
+                      />
+                    </label>
+                    <span className="text-[10px] text-white/30">MP3, up to 25 MB</span>
+                  </div>
+                  {trackUploadErrors[track.id] && (
+                    <p role="alert" className="text-xs text-red-400">{trackUploadErrors[track.id]}</p>
+                  )}
                 </div>
 
                 <button onClick={() => removeTrack(track.id)}
