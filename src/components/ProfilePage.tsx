@@ -220,9 +220,9 @@ export function ProfilePage({ config }: ProfilePageProps) {
             )}
 
             <div
-              className={`relative rounded-3xl overflow-hidden ${showGlassmorphism ? 'glass-strong' : ''}`}
+              className={`relative rounded-3xl overflow-hidden ${showGlassmorphism && !appearance.transparentCard ? 'glass-strong' : ''}`}
               style={{
-                backgroundColor: showGlassmorphism ? undefined : `rgba(15,15,15,${0.85 - appearance.transparency / 100})`,
+                backgroundColor: appearance.transparentCard ? 'transparent' : showGlassmorphism ? undefined : `rgba(15,15,15,${0.85 - appearance.transparency / 100})`,
                 border: `1px solid ${showBorderGlow ? accentColor + '30' : 'rgba(255,255,255,0.08)'}`,
                 borderRadius: `${appearance.borderRadius}px`,
                 boxShadow: showNeonGlow
