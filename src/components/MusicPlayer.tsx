@@ -6,7 +6,7 @@ import type { MusicPlayerConfig, MusicTrack } from '@/types/config';
 function getYouTubeVideoId(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl);
-    const host = url.hostname.toLowerCase().replace(/^www\\./, '');
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
     let videoId: string | null = null;
 
     if (host === 'youtu.be') {
@@ -15,7 +15,7 @@ function getYouTubeVideoId(rawUrl: string): string | null {
       if (url.pathname === '/watch') {
         videoId = url.searchParams.get('v');
       } else {
-        videoId = url.pathname.match(/^\\/(?:embed|shorts|live)\\/([^/?]+)/)?.[1] ?? null;
+        videoId = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/)?.[1] ?? null;
       }
     }
 
