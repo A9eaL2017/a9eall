@@ -138,7 +138,7 @@ export function ProfilePage({ config }: ProfilePageProps) {
 
   return (
     <div className="relative min-h-screen overflow-hidden" style={{ backgroundColor: appearance.backgroundColor }}>
-      <audio ref={audioRef} crossOrigin="anonymous" />
+      <audio ref={audioRef} />
 
       {/* Background layer */}
       <div className="fixed inset-0" style={{ zIndex: 0, ...bgStyle }} />
