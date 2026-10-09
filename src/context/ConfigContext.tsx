@@ -52,7 +52,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
         setDraft(structuredClone(loadedConfig));
       } else {
         setConfig(null);
-        setDraft(null);
+        setDraft(structuredClone(defaultConfig));
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load configuration';
