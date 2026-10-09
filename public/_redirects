@@ -1,1 +1,2 @@
+# Keep client-side app routes such as /admin working on direct visits.
 /*  /index.html  200
