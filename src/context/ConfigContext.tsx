@@ -29,6 +29,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   const loadConfig = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+    if (!supabase) {
+      setConfig(null);
+      setDraft(structuredClone(defaultConfig));
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error: queryError } = await supabase
         .from('site_config')
@@ -72,6 +80,14 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
     if (!draft) return;
     setSaveStatus('saving');
     setError(null);
+
+    if (!supabase) {
+      setError('Supabase is not configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Netlify to save configuration changes.');
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000);
+      return;
+    }
+
     try {
       const { data: existing } = await supabase
         .from('site_config')
