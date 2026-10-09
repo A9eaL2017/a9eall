@@ -88,7 +88,9 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
 
     setIsLoading(true);
     setError(null);
-    audioRef.current.src = currentTrack.url;
+    if (audioRef.current.getAttribute('src') !== currentTrack.url) {
+      audioRef.current.src = currentTrack.url;
+    }
     audioRef.current.volume = muted ? 0 : volume;
 
     const onLoaded = () => {
@@ -227,7 +229,7 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
             src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?playsinline=1&rel=0`}
             title={currentTrack.title || 'YouTube audio'}
             className="block w-full h-[270px] bg-black"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
           />
