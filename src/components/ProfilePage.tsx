@@ -223,7 +223,7 @@ export function ProfilePage({ config }: ProfilePageProps) {
               className={`relative rounded-3xl overflow-hidden ${showGlassmorphism && !appearance.transparentCard ? 'glass-strong' : ''}`}
               style={{
                 backgroundColor: appearance.transparentCard ? 'transparent' : showGlassmorphism ? undefined : `rgba(15,15,15,${0.85 - appearance.transparency / 100})`,
-                border: `1px solid ${showBorderGlow ? accentColor + '30' : 'rgba(255,255,255,0.08)'}`,
+                border: appearance.transparentCard ? 'none' : `1px solid ${showBorderGlow ? accentColor + '30' : 'rgba(255,255,255,0.08)'}`,
                 borderRadius: `${appearance.borderRadius}px`,
                 boxShadow: appearance.transparentCard
                   ? 'none'
@@ -393,7 +393,7 @@ export function ProfilePage({ config }: ProfilePageProps) {
               {profile.footerText && (
                 <div
                   className="px-6 py-3 border-t text-center"
-                  style={{ borderColor: 'rgba(255,255,255,0.04)' }}
+                  style={{ borderColor: appearance.transparentCard ? 'transparent' : 'rgba(255,255,255,0.04)' }}
                 >
                   <p className="text-xs text-white/30">{profile.footerText}</p>
                 </div>
