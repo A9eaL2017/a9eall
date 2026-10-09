@@ -123,7 +123,7 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
       audioRef.current?.removeEventListener('ended', onEnded);
       audioRef.current?.removeEventListener('error', onError);
     };
-  }, [currentTrackId]);
+  }, [currentTrack?.id, currentTrack?.url]);
 
   useEffect(() => {
     if (audioRef.current) {
