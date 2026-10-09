@@ -3,6 +3,28 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Shuffle, Repeat, Repeat1, ChevronUp, ChevronDown, Music, Loader2 } from 'lucide-react';
 import type { MusicPlayerConfig, MusicTrack } from '@/types/config';
 
+function getYouTubeVideoId(rawUrl: string): string | null {
+  try {
+    const url = new URL(rawUrl);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    let videoId: string | null = null;
+
+    if (host === 'youtu.be') {
+      videoId = url.pathname.split('/').filter(Boolean)[0] ?? null;
+    } else if (['youtube.com', 'm.youtube.com', 'music.youtube.com', 'youtube-nocookie.com'].includes(host)) {
+      if (url.pathname === '/watch') {
+        videoId = url.searchParams.get('v');
+      } else {
+        videoId = url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?]+)/)?.[1] ?? null;
+      }
+    }
+
+    return videoId && /^[A-Za-z0-9_-]{11}$/.test(videoId) ? videoId : null;
+  } catch {
+    return null;
+  }
+}
+
 interface MusicPlayerProps {
   config: MusicPlayerConfig;
   isPlaying: boolean;
@@ -30,6 +52,7 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
 
   const tracks = config.tracks;
   const currentTrack = tracks.find(t => t.id === currentTrackId) ?? tracks[0] ?? null;
+  const youtubeVideoId = currentTrack ? getYouTubeVideoId(currentTrack.url) : null;
   const currentIndex = tracks.findIndex(t => t.id === currentTrackId);
 
   useEffect(() => {
@@ -51,6 +74,17 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
 
   useEffect(() => {
     if (!currentTrack || !audioRef.current) return;
+
+    if (getYouTubeVideoId(currentTrack.url)) {
+      audioRef.current.pause();
+      audioRef.current.removeAttribute('src');
+      audioRef.current.load();
+      setCurrentTime(0);
+      setDuration(0);
+      setIsLoading(false);
+      setError(null);
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
@@ -173,6 +207,45 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
   if (!config.enabled) return null;
 
   const accentColor = config.accentColor;
+
+  if (youtubeVideoId && currentTrack) {
+    return (
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
+        style={{ width: '480px', maxWidth: 'calc(100vw - 24px)' }}
+      >
+        <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0f0f0f] shadow-2xl">
+          <iframe
+            key={youtubeVideoId}
+            src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?playsinline=1&rel=0`}
+            title={currentTrack.title || 'YouTube audio'}
+            className="block w-full h-[270px] bg-black"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+          <div className="p-3">
+            <p className="text-sm font-medium text-white/90 truncate">{currentTrack.title || 'Now playing'}</p>
+            <p className="text-xs text-white/40 truncate">{currentTrack.artist || 'YouTube'}</p>
+            {tracks.length > 1 && (
+              <select
+                aria-label="Choose a track"
+                value={currentTrack.id}
+                onChange={(event) => setCurrentTrackId(event.target.value)}
+                className="mt-2 w-full rounded-lg border border-white/10 bg-black/40 px-3 py-2 text-xs text-white"
+              >
+                {tracks.map((track) => (
+                  <option key={track.id} value={track.id}>{track.title} — {track.artist}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <>
