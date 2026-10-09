@@ -112,6 +112,7 @@ export function MusicSection() {
       <AdminCard title="Player Settings">
         <AdminToggle label="Enable Music Player" checked={mp.enabled} onChange={v => updateDraft(d => { d.musicPlayer.enabled = v; return d; })} />
         <AdminToggle label="Show Audio Visualizer" checked={mp.showVisualizer} onChange={v => updateDraft(d => { d.musicPlayer.showVisualizer = v; return d; })} />
+        <AdminToggle label="Play Music on Enter" checked={!!mp.autoplay} onChange={v => updateDraft(d => { d.musicPlayer.autoplay = v; return d; })} />
         <AdminSlider label="Default Volume" value={mp.initialVolume} min={0} max={100} unit="%" onChange={v => updateDraft(d => { d.musicPlayer.initialVolume = v; return d; })} />
         <AdminColorInput label="Player Accent Color" value={mp.accentColor} onChange={v => updateDraft(d => { d.musicPlayer.accentColor = v; return d; })} />
         <AdminField label="Default Track">
