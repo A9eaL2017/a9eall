@@ -108,7 +108,12 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
 
     const onEnded = () => handleNext();
     const onError = () => {
-      setError('Failed to load audio.');
+      const mediaErrorCode = audioRef.current?.error?.code;
+      setError(
+        mediaErrorCode === 4
+          ? 'This link is not a playable audio file. Use a direct MP3 or other supported audio URL.'
+          : 'Could not load this audio file. Check that the link is public and try again.'
+      );
       setIsLoading(false);
     };
 
