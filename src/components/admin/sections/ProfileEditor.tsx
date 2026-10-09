@@ -66,7 +66,6 @@ export function ProfileEditor() {
             <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
           </label>
           {uploadError && <p role="alert" className="text-xs text-red-400">{uploadError}</p>}
-          </label>
         </div>
       </AdminCard>
 
