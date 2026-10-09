@@ -114,6 +114,7 @@ export interface AppearanceConfig {
   blur: number;
   shadow: number;
   transparency: number;
+  transparentCard: boolean;
   fontFamily: string;
   borderRadius: number;
   preset: string;
