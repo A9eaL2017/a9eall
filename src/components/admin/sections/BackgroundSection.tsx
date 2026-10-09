@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { AdminCard, AdminField, AdminInput, AdminSlider, AdminToggle, AdminButton } from '../AdminUI';
 import { Upload } from 'lucide-react';
@@ -5,22 +6,50 @@ import { supabase } from '@/lib/supabase';
 
 export function BackgroundSection() {
   const { draft, updateDraft } = useConfig();
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   if (!draft) return null;
 
   const bg = draft.background;
 
   const uploadBackground = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
-    const ext = file.name.split('.').pop();
-    const fileName = `backgrounds/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('profile-assets').upload(fileName, file);
-    if (error) {
-      console.error('Upload error:', error.message);
+
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
+    setUploadError(null);
+    if (!allowedTypes.has(file.type)) {
+      setUploadError('Choose a JPG, PNG, WebP, GIF, or AVIF image.');
+      input.value = '';
       return;
     }
-    const { data } = supabase.storage.from('profile-assets').getPublicUrl(fileName);
-    updateDraft(d => { d.background.imageUrl = data.publicUrl; d.background.type = 'image'; return d; });
+    if (file.size > 25 * 1024 * 1024) {
+      setUploadError('Image must be 25 MB or smaller.');
+      input.value = '';
+      return;
+    }
+    if (!supabase) {
+      setUploadError('Image storage is not configured. Please contact the site owner.');
+      input.value = '';
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'img';
+      const fileName = `backgrounds/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from('profile-assets').upload(fileName, file);
+      if (error) throw new Error(error.message);
+
+      const { data } = supabase.storage.from('profile-assets').getPublicUrl(fileName);
+      updateDraft(d => { d.background.imageUrl = data.publicUrl; d.background.type = 'image'; return d; });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Background upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+      input.value = '';
+    }
   };
 
   const types: { value: typeof bg.type; label: string }[] = [
@@ -106,9 +135,11 @@ export function BackgroundSection() {
             </AdminField>
             <label className="cursor-pointer block mb-3">
               <span className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 transition-colors flex items-center gap-2 w-fit">
-                <Upload size={14} /> Upload Image
+                <Upload size={14} /> {uploading ? 'Uploading…' : 'Upload Image'}
               </span>
-              <input type="file" accept="image/*" className="hidden" onChange={uploadBackground} />
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={uploadBackground} disabled={uploading} />
+            </label>
+            {uploadError && <p role="alert" className="text-xs text-red-400 mb-3">{uploadError}</p>}
             </label>
             {bg.imageUrl && <img src={bg.imageUrl} alt="" className="w-full h-32 rounded-xl object-cover" />}
           </>
