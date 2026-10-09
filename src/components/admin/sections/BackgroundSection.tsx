@@ -140,7 +140,6 @@ export function BackgroundSection() {
               <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={uploadBackground} disabled={uploading} />
             </label>
             {uploadError && <p role="alert" className="text-xs text-red-400 mb-3">{uploadError}</p>}
-            </label>
             {bg.imageUrl && <img src={bg.imageUrl} alt="" className="w-full h-32 rounded-xl object-cover" />}
           </>
         )}
