@@ -100,12 +100,19 @@ export function ProfilePage({ config }: ProfilePageProps) {
 
   const handleEnter = useCallback(() => {
     setEntered(true);
-    if (musicPlayer.enabled && musicPlayer.tracks.length > 0 && audioRef.current) {
-      audioRef.current.volume = musicPlayer.initialVolume / 100;
-      audioRef.current.play().then(() => setIsPlaying(true)).catch(() => {
-        // Autoplay might still be blocked despite user interaction
-      });
+    if (!musicPlayer.enabled || !musicPlayer.autoplay || !audioRef.current) return;
+
+    const track = musicPlayer.tracks.find(item => item.id === musicPlayer.defaultTrackId) ?? musicPlayer.tracks[0];
+    if (!track?.url) return;
+
+    if (/(?:youtube\\.com|youtu\\.be)/i.test(track.url)) {
+      setIsPlaying(true);
+      return;
     }
+
+    audioRef.current.src = track.url;
+    audioRef.current.volume = musicPlayer.initialVolume / 100;
+    audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
   }, [musicPlayer]);
 
   const handleTilt = (e: React.MouseEvent<HTMLDivElement>) => {
