@@ -220,10 +220,10 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
-        style={{ width: '480px', maxWidth: 'calc(100vw - 24px)' }}
+        className="fixed inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
-        <div className="rounded-2xl overflow-hidden border border-white/10 bg-[#0f0f0f] shadow-2xl">
+        <div className="pointer-events-auto w-full max-w-[480px] rounded-2xl overflow-hidden border border-white/10 bg-[#0f0f0f] shadow-2xl">
           <iframe
             key={youtubeVideoId}
             src={`https://www.youtube-nocookie.com/embed/${youtubeVideoId}?playsinline=1&rel=0`}
@@ -272,12 +272,14 @@ export function MusicPlayer({ config, isPlaying, onTogglePlay, audioElement }: M
       <motion.div
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50"
-        style={{ width: expanded ? '420px' : '340px', maxWidth: 'calc(100vw - 24px)' }}
+        className="fixed inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
       >
         <div
-          className="rounded-2xl backdrop-blur-xl border overflow-hidden"
+          className="pointer-events-auto w-full rounded-2xl backdrop-blur-xl border overflow-hidden"
           style={{
+            width: expanded ? '420px' : '340px',
+            maxWidth: '100%',
             backgroundColor: `rgba(15, 15, 15, ${0.85 + config.accentColor ? 0 : 0})`,
             borderColor: `rgba(255,255,255,0.08)`,
             boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${accentColor}20`,
