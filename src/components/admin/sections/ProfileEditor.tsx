@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useConfig } from '@/context/ConfigContext';
 import { AdminCard, AdminField, AdminInput, AdminTextarea, AdminToggle } from '../AdminUI';
 import { Upload } from 'lucide-react';
@@ -5,28 +6,42 @@ import { supabase } from '@/lib/supabase';
 
 export function ProfileEditor() {
   const { draft, updateDraft } = useConfig();
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   if (!draft) return null;
 
   const p = draft.profile;
 
-  const uploadFile = async (file: File, folder: string): Promise<string | null> => {
-    const ext = file.name.split('.').pop();
-    const fileName = `${folder}/${Date.now()}.${ext}`;
+  const uploadFile = async (file: File, folder: string): Promise<string> => {
+    const allowedTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
+    if (!allowedTypes.has(file.type)) throw new Error('Choose a JPG, PNG, WebP, GIF, or AVIF image.');
+    if (file.size > 25 * 1024 * 1024) throw new Error('Image must be 25 MB or smaller.');
+    if (!supabase) throw new Error('Image storage is not configured. Please contact the site owner.');
+
+    const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'img';
+    const fileName = `${folder}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('profile-assets').upload(fileName, file);
-    if (error) {
-      console.error('Upload error:', error.message);
-      return null;
-    }
+    if (error) throw new Error(error.message);
+
     const { data } = supabase.storage.from('profile-assets').getPublicUrl(fileName);
     return data.publicUrl;
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const input = e.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
-    const url = await uploadFile(file, 'avatars');
-    if (url) {
+
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const url = await uploadFile(file, 'avatars');
       updateDraft(d => { d.profile.avatarUrl = url; return d; });
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Avatar upload failed. Please try again.');
+    } finally {
+      setUploading(false);
+      input.value = '';
     }
   };
 
@@ -45,10 +60,12 @@ export function ProfileEditor() {
             </div>
           )}
           <label className="cursor-pointer">
-            <span className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 transition-colors flex items-center gap-2">
-              <Upload size={14} /> Upload Image
+            <span className={`px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white/70 hover:bg-white/10 transition-colors flex items-center gap-2 ${uploading ? 'opacity-50' : ''}`}>
+              <Upload size={14} /> {uploading ? 'Uploading…' : 'Upload Image'}
             </span>
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+            <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/avif" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
+          </label>
+          {uploadError && <p role="alert" className="text-xs text-red-400">{uploadError}</p>}
           </label>
         </div>
       </AdminCard>
