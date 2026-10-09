@@ -139,7 +139,7 @@ export function ProfilePage({ config }: ProfilePageProps) {
   }
 
   const showBorderGlow = effects.profile.glowingBorder.enabled && !reducedMotion;
-  const showGradientBorder = effects.profile.gradientBorder.enabled && !reducedMotion;
+  const showGradientBorder = effects.profile.gradientBorder.enabled && !reducedMotion && !appearance.transparentCard;
   const showNeonGlow = effects.profile.neonGlow.enabled && !reducedMotion;
   const showGlassmorphism = effects.interface.glassmorphism.enabled;
 
@@ -225,9 +225,11 @@ export function ProfilePage({ config }: ProfilePageProps) {
                 backgroundColor: appearance.transparentCard ? 'transparent' : showGlassmorphism ? undefined : `rgba(15,15,15,${0.85 - appearance.transparency / 100})`,
                 border: `1px solid ${showBorderGlow ? accentColor + '30' : 'rgba(255,255,255,0.08)'}`,
                 borderRadius: `${appearance.borderRadius}px`,
-                boxShadow: showNeonGlow
-                  ? `0 0 ${effects.profile.neonGlow.size}px ${accentColor}30, 0 8px 32px rgba(0,0,0,0.5)`
-                  : `0 8px 32px rgba(0,0,0,0.5)`,
+                boxShadow: appearance.transparentCard
+                  ? 'none'
+                  : showNeonGlow
+                    ? `0 0 ${effects.profile.neonGlow.size}px ${accentColor}30, 0 8px 32px rgba(0,0,0,0.5)`
+                    : `0 8px 32px rgba(0,0,0,0.5)`,
               }}
             >
               <div className="p-6 md:p-8">
