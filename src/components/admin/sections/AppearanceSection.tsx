@@ -1,5 +1,5 @@
 import { useConfig } from '@/context/ConfigContext';
-import { AdminCard, AdminField, AdminColorInput, AdminSlider, AdminButton } from '../AdminUI';
+import { AdminCard, AdminField, AdminColorInput, AdminSlider, AdminButton, AdminToggle } from '../AdminUI';
 import { appearancePresets } from '@/lib/defaultConfig';
 
 export function AppearanceSection() {
@@ -38,6 +38,14 @@ export function AppearanceSection() {
       <AdminCard title="Colors">
         <AdminColorInput label="Accent Color" value={a.accentColor} onChange={v => updateDraft(d => { d.appearance.accentColor = v; return d; })} />
         <AdminColorInput label="Background Color" value={a.backgroundColor} onChange={v => updateDraft(d => { d.appearance.backgroundColor = v; return d; })} />
+      </AdminCard>
+
+      <AdminCard title="Profile Card" description="Control the panel behind your name, avatar, and profile details">
+        <AdminToggle
+          label="Transparent Profile Card"
+          checked={!!a.transparentCard}
+          onChange={v => updateDraft(d => { d.appearance.transparentCard = v; return d; })}
+        />
       </AdminCard>
 
       <AdminCard title="Visual Tuning">
